@@ -47,7 +47,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
       entities: [],
-      synchronize: true,
+      synchronize: process.env.ENV === 'development' ? true : false,
     })
   ],
   controllers: [AppController],

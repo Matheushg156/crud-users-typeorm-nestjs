@@ -1,14 +1,15 @@
+import { Role } from 'src/enums/role.enum';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity({
+  name: 'users'
+})
 export class UserEntity {
 
   @PrimaryGeneratedColumn({
     type: 'int',
     unsigned: true
   })
-
-  @Column()
   id: number;
 
   @Column({
@@ -31,10 +32,10 @@ export class UserEntity {
     type: 'date',
     nullable: true
   })
-  birthAt: string;
+  birthAt: Date;
 
   @Column({
-    enum: [1, 2],
+    default: Role.User
   })
   role: number;
 

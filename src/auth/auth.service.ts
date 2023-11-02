@@ -4,6 +4,9 @@ import { AuthRegisterDTO } from './dto/auth-register.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer/dist';
+import { UserEntity } from 'src/user/entity/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
@@ -14,10 +17,12 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    private readonly mailerService: MailerService
+    private readonly mailerService: MailerService,
+    @InjectRepository(UserEntity)
+    private usersRepository: Repository<UserEntity>
     ) {}
 
-    createToken(user) {
+    createToken(user: UserEntity) {
       return {
         accessToken: this.jwtService.sign({
           id: user.id,
@@ -56,7 +61,7 @@ export class AuthService {
     }
 
     async login(email: string, password: string) {
-      const user = await this.prisma.user.findFirst({
+      const user = await this.usersRepository.findOne({
         where: { email }
       })
 
@@ -74,7 +79,7 @@ export class AuthService {
     }
 
     async forgotPassword(email: string) {
-      const user = await this.prisma.user.findFirst({
+      const user = await this.usersRepository.findOne({
         where: { email }
       })
 
@@ -100,7 +105,7 @@ export class AuthService {
           token,
         }
       })
-      
+
       return true
     }
 
@@ -121,10 +126,12 @@ export class AuthService {
 
         password = await bcrypt.hash(password, salt);
 
-        const user = await this.prisma.user.update({
-          where: { id },
-          data: { password }
-        })
+        await this.usersRepository.update(
+          id,
+          { password }
+        )
+
+        const user = await this.userService.readOne(id);
 
         return this.createToken(user);
       } catch (error) {
